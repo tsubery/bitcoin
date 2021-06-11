@@ -288,6 +288,7 @@ enum ServiceFlags : uint64_t {
     // serving the last 288 (2 day) blocks
     // See BIP159 for details on how this is implemented.
     NODE_NETWORK_LIMITED = (1 << 10),
+    FAST_RELAY = (1 << 11),
 
     // Bits 24-31 are reserved for temporary experiments. Just pick a bit that
     // isn't getting used, or one not being used much, and notify the

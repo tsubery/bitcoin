@@ -83,11 +83,11 @@ static constexpr int32_t MAX_PEER_TX_REQUEST_IN_FLIGHT = 100;
  *  the actual transaction (from any peer) in response to requests for them. */
 static constexpr int32_t MAX_PEER_TX_ANNOUNCEMENTS = 5000;
 /** How long to delay requesting transactions via txids, if we have wtxid-relaying peers */
-static constexpr auto TXID_RELAY_DELAY = std::chrono::seconds{2};
+static constexpr auto TXID_RELAY_DELAY = std::chrono::seconds{0};
 /** How long to delay requesting transactions from non-preferred peers */
-static constexpr auto NONPREF_PEER_TX_DELAY = std::chrono::seconds{2};
+static constexpr auto NONPREF_PEER_TX_DELAY = std::chrono::seconds{0};
 /** How long to delay requesting transactions from overloaded peers (see MAX_PEER_TX_REQUEST_IN_FLIGHT). */
-static constexpr auto OVERLOADED_PEER_TX_DELAY = std::chrono::seconds{2};
+static constexpr auto OVERLOADED_PEER_TX_DELAY = std::chrono::seconds{0};
 /** How long to wait (in microseconds) before downloading a transaction from an additional peer */
 static constexpr std::chrono::microseconds GETDATA_TX_INTERVAL{std::chrono::seconds{60}};
 /** Limit to avoid sending big packets. Not used in processing incoming GETDATA for compatibility */
