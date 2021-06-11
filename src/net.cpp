@@ -1006,7 +1006,7 @@ bool CConnman::AttemptToEvictConnection()
 
         LOCK(cs_vNodes);
         for (const CNode* node : vNodes) {
-            if (node->HasPermission(NetPermissionFlags::NoBan))
+            if (node->HasPermission(NetPermissionFlags::VIP))
                 continue;
             if (!node->IsInboundConn())
                 continue;
@@ -1083,7 +1083,7 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
         if (gArgs.GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::ForceRelay);
         if (gArgs.GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)) NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::Relay);
         NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::Mempool);
-        NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::NoBan);
+        NetPermissions::AddFlag(permissionFlags, NetPermissionFlags::VIP);
     }
 
     {
@@ -1112,7 +1112,7 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
 
     // Don't accept connections from banned peers.
     bool banned = m_banman && m_banman->IsBanned(addr);
-    if (!NetPermissions::HasFlag(permissionFlags, NetPermissionFlags::NoBan) && banned)
+    if (!NetPermissions::HasFlag(permissionFlags, NetPermissionFlags::VIP) && banned)
     {
         LogPrint(BCLog::NET, "connection from %s dropped (banned)\n", addr.ToString());
         CloseSocket(hSocket);
@@ -1121,7 +1121,7 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
 
     // Only accept connections from discouraged peers if our inbound slots aren't (almost) full.
     bool discouraged = m_banman && m_banman->IsDiscouraged(addr);
-    if (!NetPermissions::HasFlag(permissionFlags, NetPermissionFlags::NoBan) && nInbound + 1 >= nMaxInbound && discouraged)
+    if (!NetPermissions::HasFlag(permissionFlags, NetPermissionFlags::VIP) && nInbound + 1 >= nMaxInbound && discouraged)
     {
         LogPrint(BCLog::NET, "connection from %s dropped (discouraged)\n", addr.ToString());
         CloseSocket(hSocket);
@@ -2412,7 +2412,7 @@ bool CConnman::Bind(const CService &addr, unsigned int flags, NetPermissionFlags
         return false;
     }
 
-    if (addr.IsRoutable() && fDiscover && !(flags & BF_DONT_ADVERTISE) && !NetPermissions::HasFlag(permissions, NetPermissionFlags::NoBan)) {
+    if (addr.IsRoutable() && fDiscover && !(flags & BF_DONT_ADVERTISE) && !NetPermissions::HasFlag(permissions, NetPermissionFlags::VIP)) {
         AddLocal(addr, LOCAL_BIND);
     }
 

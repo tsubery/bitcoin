@@ -28,7 +28,7 @@ enum class NetPermissionFlags : uint32_t {
     // Allow getheaders during IBD and block-download after maxuploadtarget limit
     Download = (1U << 6),
     // Can't be banned/disconnected/discouraged for misbehavior
-    NoBan = (1U << 4) | Download,
+    VIP = (1U << 4) | Download,
     // Can query the mempool
     Mempool = (1U << 5),
     // Can request addrs without hitting a privacy-preserving cache
@@ -36,7 +36,7 @@ enum class NetPermissionFlags : uint32_t {
 
     // True if the user did not specifically set fine grained permissions
     Implicit = (1U << 31),
-    All = BloomFilter | ForceRelay | Relay | NoBan | Mempool | Download | Addr,
+    All = BloomFilter | ForceRelay | Relay | VIP | Mempool | Download | Addr,
 };
 static inline constexpr NetPermissionFlags operator|(NetPermissionFlags a, NetPermissionFlags b)
 {

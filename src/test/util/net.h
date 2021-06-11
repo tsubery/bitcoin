@@ -50,7 +50,7 @@ constexpr NetPermissionFlags ALL_NET_PERMISSION_FLAGS[]{
     NetPermissionFlags::BloomFilter,
     NetPermissionFlags::Relay,
     NetPermissionFlags::ForceRelay,
-    NetPermissionFlags::NoBan,
+    NetPermissionFlags::VIP,
     NetPermissionFlags::Mempool,
     NetPermissionFlags::Addr,
     NetPermissionFlags::Download,

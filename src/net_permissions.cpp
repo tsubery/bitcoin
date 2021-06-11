@@ -45,7 +45,7 @@ bool TryParsePermissionFlags(const std::string& str, NetPermissionFlags& output,
             if (commaSeparator != std::string::npos) readen++; // We read ","
 
             if (permission == "bloomfilter" || permission == "bloom") NetPermissions::AddFlag(flags, NetPermissionFlags::BloomFilter);
-            else if (permission == "noban") NetPermissions::AddFlag(flags, NetPermissionFlags::NoBan);
+            else if (permission == "noban") NetPermissions::AddFlag(flags, NetPermissionFlags::VIP);
             else if (permission == "forcerelay") NetPermissions::AddFlag(flags, NetPermissionFlags::ForceRelay);
             else if (permission == "mempool") NetPermissions::AddFlag(flags, NetPermissionFlags::Mempool);
             else if (permission == "download") NetPermissions::AddFlag(flags, NetPermissionFlags::Download);
@@ -72,7 +72,7 @@ std::vector<std::string> NetPermissions::ToStrings(NetPermissionFlags flags)
 {
     std::vector<std::string> strings;
     if (NetPermissions::HasFlag(flags, NetPermissionFlags::BloomFilter)) strings.push_back("bloomfilter");
-    if (NetPermissions::HasFlag(flags, NetPermissionFlags::NoBan)) strings.push_back("noban");
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::VIP)) strings.push_back("noban");
     if (NetPermissions::HasFlag(flags, NetPermissionFlags::ForceRelay)) strings.push_back("forcerelay");
     if (NetPermissions::HasFlag(flags, NetPermissionFlags::Relay)) strings.push_back("relay");
     if (NetPermissions::HasFlag(flags, NetPermissionFlags::Mempool)) strings.push_back("mempool");

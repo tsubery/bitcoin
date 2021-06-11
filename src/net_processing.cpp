@@ -124,11 +124,11 @@ static constexpr auto AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL = 24h;
 /** Average delay between peer address broadcasts */
 static constexpr auto AVG_ADDRESS_BROADCAST_INTERVAL = 30s;
 /** Average delay between trickled inventory transmissions for inbound peers.
- *  Blocks and peers with NetPermissionFlags::NoBan permission bypass this. */
+ *  Blocks and peers with NetPermissionFlags::VIP permission bypass this. */
 static constexpr auto INBOUND_INVENTORY_BROADCAST_INTERVAL = 5s;
 /** Average delay between trickled inventory transmissions for outbound peers.
  *  Use a smaller delay as there is less privacy concern for them.
- *  Blocks and peers with NetPermissionFlags::NoBan permission bypass this. */
+ *  Blocks and peers with NetPermissionFlags::VIP permission bypass this. */
 static constexpr auto OUTBOUND_INVENTORY_BROADCAST_INTERVAL = 2s;
 /** Maximum rate of inventory items to send per second.
  *  Limits the impact of low-fee transaction floods. */
@@ -185,7 +185,7 @@ struct Peer {
     Mutex m_misbehavior_mutex;
     /** Accumulated misbehavior score for this peer */
     int m_misbehavior_score GUARDED_BY(m_misbehavior_mutex){0};
-    /** Whether this peer should be disconnected and marked as discouraged (unless it has NetPermissionFlags::NoBan permission). */
+    /** Whether this peer should be disconnected and marked as discouraged (unless it has NetPermissionFlags::VIP permission). */
     bool m_should_discourage GUARDED_BY(m_misbehavior_mutex){false};
 
     /** Protects block inventory data members */
@@ -756,7 +756,7 @@ static void UpdatePreferredDownload(const CNode& node, CNodeState* state) EXCLUS
     nPreferredDownload -= state->fPreferredDownload;
 
     // Whether this node should be marked as a preferred download node.
-    state->fPreferredDownload = (!node.IsInboundConn() || node.HasPermission(NetPermissionFlags::NoBan)) && !node.IsAddrFetchConn() && !node.fClient;
+    state->fPreferredDownload = (!node.IsInboundConn() || node.HasPermission(NetPermissionFlags::VIP)) && !node.IsAddrFetchConn() && !node.fClient;
 
     nPreferredDownload += state->fPreferredDownload;
 }
@@ -1051,7 +1051,7 @@ void PeerManagerImpl::AddTxAnnouncement(const CNode& node, const GenTxid& gtxid,
     const CNodeState* state = State(nodeid);
 
     // Decide the TxRequestTracker parameters for this announcement:
-    // - "preferred": if fPreferredDownload is set (= outbound, or NetPermissionFlags::NoBan permission)
+    // - "preferred": if fPreferredDownload is set (= outbound, or NetPermissionFlags::VIP permission)
     // - "reqtime": current time plus delays for:
     //   - NONPREF_PEER_TX_DELAY for announcements from non-preferred connections
     //   - TXID_RELAY_DELAY for txid announcements while wtxid peers are available
@@ -1720,7 +1720,7 @@ void PeerManagerImpl::ProcessGetBlockData(CNode& pfrom, Peer& peer, const CInv& 
         return;
     }
     // Avoid leaking prune-height by never sending blocks below the NODE_NETWORK_LIMITED threshold
-    if (!pfrom.HasPermission(NetPermissionFlags::NoBan) && (
+    if (!pfrom.HasPermission(NetPermissionFlags::VIP) && (
             (((pfrom.GetLocalServices() & NODE_NETWORK_LIMITED) == NODE_NETWORK_LIMITED) && ((pfrom.GetLocalServices() & NODE_NETWORK) != NODE_NETWORK) && (m_chainman.ActiveChain().Tip()->nHeight - pindex->nHeight > (int)NODE_NETWORK_LIMITED_MIN_BLOCKS + 2 /* add two blocks buffer extension for possible races */) )
        )) {
         LogPrint(BCLog::NET, "Ignore block request below NODE_NETWORK_LIMITED threshold, disconnect peer=%d\n", pfrom.GetId());
@@ -3675,7 +3675,7 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
     if (msg_type == NetMsgType::MEMPOOL) {
         if (!(pfrom.GetLocalServices() & NODE_BLOOM) && !pfrom.HasPermission(NetPermissionFlags::Mempool))
         {
-            if (!pfrom.HasPermission(NetPermissionFlags::NoBan))
+            if (!pfrom.HasPermission(NetPermissionFlags::VIP))
             {
                 LogPrint(BCLog::NET, "mempool request with bloom filters disabled, disconnect peer=%d\n", pfrom.GetId());
                 pfrom.fDisconnect = true;
@@ -3685,7 +3685,7 @@ void PeerManagerImpl::ProcessMessage(CNode& pfrom, const std::string& msg_type, 
 
         if (m_connman.OutboundTargetReached(false) && !pfrom.HasPermission(NetPermissionFlags::Mempool))
         {
-            if (!pfrom.HasPermission(NetPermissionFlags::NoBan))
+            if (!pfrom.HasPermission(NetPermissionFlags::VIP))
             {
                 LogPrint(BCLog::NET, "mempool request with bandwidth limit reached, disconnect peer=%d\n", pfrom.GetId());
                 pfrom.fDisconnect = true;
@@ -3900,8 +3900,8 @@ bool PeerManagerImpl::MaybeDiscourageAndDisconnect(CNode& pnode, Peer& peer)
         peer.m_should_discourage = false;
     } // peer.m_misbehavior_mutex
 
-    if (pnode.HasPermission(NetPermissionFlags::NoBan)) {
-        // We never disconnect or discourage peers for bad behavior if they have NetPermissionFlags::NoBan permission
+    if (pnode.HasPermission(NetPermissionFlags::VIP)) {
+        // We never disconnect or discourage peers for bad behavior if they have NetPermissionFlags::VIP permission
         LogPrintf("Warning: not punishing noban peer %d!\n", peer.m_id);
         return false;
     }
@@ -4579,7 +4579,7 @@ bool PeerManagerImpl::SendMessages(CNode* pto)
         if (pto->m_tx_relay != nullptr) {
                 LOCK(pto->m_tx_relay->cs_tx_inventory);
                 // Check whether periodic sends should happen
-                bool fSendTrickle = pto->HasPermission(NetPermissionFlags::NoBan);
+                bool fSendTrickle = pto->HasPermission(NetPermissionFlags::VIP);
                 if (pto->m_tx_relay->nNextInvSend < current_time) {
                     fSendTrickle = true;
                     if (pto->IsInboundConn()) {
@@ -4736,12 +4736,12 @@ bool PeerManagerImpl::SendMessages(CNode* pto)
             // Detect whether this is a stalling initial-headers-sync peer
             if (pindexBestHeader->GetBlockTime() <= GetAdjustedTime() - 24 * 60 * 60) {
                 if (current_time > state.m_headers_sync_timeout && nSyncStarted == 1 && (nPreferredDownload - state.fPreferredDownload >= 1)) {
-                    // Disconnect a peer (without NetPermissionFlags::NoBan permission) if it is our only sync peer,
+                    // Disconnect a peer (without NetPermissionFlags::VIP permission) if it is our only sync peer,
                     // and we have others we could be using instead.
                     // Note: If all our peers are inbound, then we won't
                     // disconnect our sync peer for stalling; we have bigger
                     // problems if we can't get any outbound peers.
-                    if (!pto->HasPermission(NetPermissionFlags::NoBan)) {
+                    if (!pto->HasPermission(NetPermissionFlags::VIP)) {
                         LogPrintf("Timeout downloading headers from peer=%d, disconnecting\n", pto->GetId());
                         pto->fDisconnect = true;
                         return true;
