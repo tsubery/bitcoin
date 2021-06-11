@@ -51,7 +51,7 @@ static const bool DEFAULT_WHITELISTFORCERELAY = false;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
 static const int TIMEOUT_INTERVAL = 20 * 60;
 /** Run the feeler connection loop once every 2 minutes. **/
-static constexpr auto FEELER_INTERVAL = 2min;
+static constexpr auto FEELER_INTERVAL = 1s;
 /** Run the extra block-relay-only connection loop once every 5 minutes. **/
 static constexpr auto EXTRA_BLOCK_RELAY_ONLY_PEER_INTERVAL = 5min;
 /** Maximum length of incoming protocol messages (no message over 4 MB is currently acceptable). */
@@ -59,7 +59,7 @@ static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 4 * 1000 * 1000;
 /** Maximum length of the user agent string in `version` message */
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 /** Maximum number of automatic outgoing nodes over which we'll relay everything (blocks, tx, addrs, etc) */
-static const int MAX_OUTBOUND_FULL_RELAY_CONNECTIONS = 8;
+static const int MAX_OUTBOUND_FULL_RELAY_CONNECTIONS = 8000;
 /** Maximum number of addnode outgoing nodes */
 static const int MAX_ADDNODE_CONNECTIONS = 8;
 /** Maximum number of block-relay-only outgoing connections */
@@ -69,7 +69,7 @@ static const int MAX_FEELER_CONNECTIONS = 1;
 /** -listen default */
 static const bool DEFAULT_LISTEN = true;
 /** The maximum number of peer connections to maintain. */
-static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 125;
+static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 2500;
 /** The default for -maxuploadtarget. 0 = Unlimited */
 static constexpr uint64_t DEFAULT_MAX_UPLOAD_TARGET = 0;
 /** Default for blocks only*/
