@@ -124,16 +124,16 @@ public:
  */
 
 //! total number of buckets for tried addresses
-#define ADDRMAN_TRIED_BUCKET_COUNT_LOG2 8
+#define ADDRMAN_TRIED_BUCKET_COUNT_LOG2 10
 
 //! total number of buckets for new addresses
-#define ADDRMAN_NEW_BUCKET_COUNT_LOG2 10
+#define ADDRMAN_NEW_BUCKET_COUNT_LOG2 12
 
 //! maximum allowed number of entries in buckets for new and tried addresses
-#define ADDRMAN_BUCKET_SIZE_LOG2 6
+#define ADDRMAN_BUCKET_SIZE_LOG2 7
 
 //! over how many buckets entries with tried addresses from a single group (/16 for IPv4) are spread
-#define ADDRMAN_TRIED_BUCKETS_PER_GROUP 8
+#define ADDRMAN_TRIED_BUCKETS_PER_GROUP 9
 
 //! over how many buckets entries with new addresses originating from a single group are spread
 #define ADDRMAN_NEW_BUCKETS_PER_SOURCE_GROUP 64
